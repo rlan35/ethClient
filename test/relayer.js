@@ -34,7 +34,7 @@ const Web3 = require("web3");
 var web3 = new Web3("wss://ropsten.infura.io/ws/v3/03f8907457e847d7b14aa072355c8d03");
 
 json = ClientJson
-ethClientAddr = "0xa036a1da51d22f0fd574495322c3266a0b5deb80" //await deploy_contract(json)
+ethClientAddr = "0x44606b88d70b4ac403eb3eb6b38f32cdac241007" //await deploy_contract(json)
 
 const ethClient = client.contracts.createContract(
 json.abi,
@@ -64,6 +64,7 @@ async function catchUp(error, event) {
 
 	var maxHeight = await ethClient.methods.getBlockHeightMax().call(options);
 	console.log("getBlockHeightMax: " + maxHeight);
+	console.log(event)
 	maxHeight = parseInt(maxHeight)
 	while (maxHeight < event.number) {
   		maxHeight = await ethClient.methods.getBlockHeightMax().call(options);
@@ -75,7 +76,6 @@ async function catchUp(error, event) {
 
 		if (nextBlock != null) {
 			nextBlockHex = encodeBlock(nextBlock)
-			// console.log(nextBlockHex)
 
 
 			response = await ethClient.methods.addBlockHeader(nextBlockHex).send(options);
@@ -85,7 +85,17 @@ async function catchUp(error, event) {
 				console.log("Contract " + json.contractName + " call successfully")
 			} else {
 				console.log("Contract " + json.contractName + " call failed!")
+
+				var nextBlock = await web3.eth.getBlock(nextHeight - 1);
+
+				if (nextBlock != null) {
+					nextBlockHex = encodeBlock(nextBlock)
+					response = await ethClient.methods.addBlockHeader(nextBlockHex).send(options);
+				}
+				return
 			}
+		} else {
+			return
 		}
 	}
 	console.log("Event handling done.")
