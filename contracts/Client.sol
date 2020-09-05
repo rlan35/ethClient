@@ -9,9 +9,10 @@ import './ClientStorage.sol';
 import "./EthCommon.sol";
 import "./EthUtils.sol";
 import "./NextyPreCompiled.sol";
+import "./IClient.sol";
 
 /// @title Ethereum light client
-contract Client is ClientStorage {
+contract Client is ClientStorage, IClient {
     using SafeMath for uint256;
     // using BytesLib for bytes;
     // using BTCUtils for bytes;
@@ -82,12 +83,24 @@ contract Client is ClientStorage {
 
     uint public finalityConfirms;
 
-    uint256 public constant OPTIMAL_UTILIZATION_RATE = 0.8 * 1e27;
-
-    constructor() public {
+    constructor(bytes memory _rlpHeader) public {
         finalityConfirms = DEFAULT_FINALITY_CONFIRMS;
 
-        _setFirstBlock();
+        uint blockHash = EthCommon.calcBlockHeaderHash(_rlpHeader);
+        // Parse rlp-encoded block header into structure
+        EthCommon.BlockHeader memory header = EthCommon.parseBlockHeader(_rlpHeader);
+        // Save block header info
+        StoredBlockHeader memory storedBlock = StoredBlockHeader({
+            parentHash : header.parentHash,
+            stateRoot : header.stateRoot,
+            transactionsRoot : header.transactionsRoot,
+            receiptsRoot : header.receiptsRoot,
+            number : header.number,
+            difficulty : header.difficulty,
+            time : header.timestamp,
+            hash : blockHash
+            });
+        _setFirstBlock(storedBlock);
     }
 
 
@@ -122,7 +135,7 @@ contract Client is ClientStorage {
         StoredBlockHeader memory storedBlock = StoredBlockHeader({
             parentHash : header.parentHash,
             stateRoot : header.stateRoot,
-            txRoot : header.transactionsRoot,
+            transactionsRoot : header.transactionsRoot,
             receiptsRoot : header.receiptsRoot,
             number : header.number,
             difficulty : header.difficulty,
@@ -144,25 +157,25 @@ contract Client is ClientStorage {
         return true;
     }
 
-    function getTest() external view returns (uint256) {
-        return OPTIMAL_UTILIZATION_RATE;
-    }
-
     function getBlockHeightMax() public returns (uint256) {
-        return 5;
+        return blockHeightMax;
     }
 
-    // function getStateRoot(bytes32 blockHash) public returns (uint256) {
-    //     return blocks[uint(blockHash)].stateRoot;
-    // }
+    function getStateRoot(bytes32 blockHash) public returns (bytes32) {
+        return bytes32(blocks[uint(blockHash)].stateRoot);
+    }
 
-    // function getTxRoot(bytes32 blockHash) public returns (uint256) {
-    //     return blocks[uint(blockHash)].transactionsRoot;
-    // }
+    function getTxRoot(bytes32 blockHash) public returns (bytes32) {
+        return bytes32(blocks[uint(blockHash)].transactionsRoot);
+    }
 
-    // function getReceiptRoot(bytes32 blockHash) public returns (uint256) {
-    //     return blocks[uint(blockHash)].receiptsRoot;
-    // }
+    function getReceiptRoot(bytes32 blockHash) public returns (bytes32) {
+        return bytes32(blocks[uint(blockHash)].receiptsRoot);
+    }
+
+    function VerifyReceiptsHash(bytes32 blockHash, bytes32 receiptsHash) external view returns (bool) {
+        return bytes32(blocks[uint(blockHash)].receiptsRoot) == receiptsHash;
+    }
 
     // Check the difficulty of block is valid or not
     // (the block difficulty adjustment is described here: https://github.com/ethereum/EIPs/issues/100)
@@ -172,8 +185,7 @@ contract Client is ClientStorage {
         return diff >= parentDiff.sub((parentDiff / 10000) * 99);
     }
 
-    function _setFirstBlock() private{
-        StoredBlockHeader memory toSetBlock = _defineFirstBlock();
+    function _setFirstBlock(StoredBlockHeader memory toSetBlock) private {
 
         firstBlock = toSetBlock.hash;
 
@@ -198,7 +210,7 @@ contract Client is ClientStorage {
         StoredBlockHeader memory ret = StoredBlockHeader({
             parentHash : 0x65d283e7a4ea14e86404c9ad855d59b4a49a9ae4602dd80857c130a8a57de12d,
             stateRoot : 0x87c377f10bfda590c8e3bfa6a6cafeb9736a251439766196ac508cfcbc795a32,
-            txRoot : 0xf4cdf600a8b159e94c49f974ea2da5f05516098fab03dd231469e63982a2ab6e,
+            transactionsRoot : 0xf4cdf600a8b159e94c49f974ea2da5f05516098fab03dd231469e63982a2ab6e,
             receiptsRoot : 0xd8e77b10e522f5f2c1165c74baa0054fca5e90960cdf26b99892106f06f100f7,
             number : 6419330,
             difficulty : 2125760053,

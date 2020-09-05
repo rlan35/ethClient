@@ -7,7 +7,7 @@ pragma solidity ^0.5.0;
  	struct StoredBlockHeader {
  		uint parentHash;
  		uint stateRoot;
- 		uint txRoot;
+ 		uint transactionsRoot;
  		uint receiptsRoot;
  		uint number;
  		uint difficulty;
