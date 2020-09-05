@@ -17,7 +17,7 @@ const hmy_local = new Harmony(
     chainId: ChainID.HmyTestnet,
   }
 );
-var client = hmy_local
+var client = hmy
 
 const ClientJson = require("../build/contracts/Client.json");
 
@@ -75,7 +75,7 @@ async function deploy() {
   var resp = await ethClient.methods.VerifyReceiptsHash(nextBlock.hash, nextBlock.receiptsRoot).call(options);
 
   console.log(resp)
-  
+
   // var resp = await ethClient.methods.getBlockHeightMax().call(options);
 
   // console.log("getBlockHeightMax: " + resp);

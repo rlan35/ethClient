@@ -17,7 +17,7 @@ const hmy_local = new Harmony(
     chainId: ChainID.HmyTestnet,
   }
 );
-var client = hmy_local
+var client = hmy
 
 const ClientJson = require("../build/contracts/Client.json");
 
@@ -34,7 +34,7 @@ const Web3 = require("web3");
 var web3 = new Web3("wss://ropsten.infura.io/ws/v3/03f8907457e847d7b14aa072355c8d03");
 
 json = ClientJson
-ethClientAddr = "0x95a759428f9a8b4bc02e20086085f32b7a440463" //await deploy_contract(json)
+ethClientAddr = "0xa036a1da51d22f0fd574495322c3266a0b5deb80" //await deploy_contract(json)
 
 const ethClient = client.contracts.createContract(
 json.abi,
