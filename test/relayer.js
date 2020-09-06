@@ -77,9 +77,12 @@ async function catchUp(error, event) {
 		if (nextBlock != null) {
 			nextBlockHex = encodeBlock(nextBlock)
 
-
-			response = await ethClient.methods.addBlockHeader(nextBlockHex).send(options);
-			
+			try {
+				response = await ethClient.methods.addBlockHeader(nextBlockHex).send(options);
+			} catch(e) {
+			    console.log('Error caught');
+			    return
+			}
 			if (response.transaction.receipt != null && response.transaction.receipt.status == "0x1") {
 			    maxHeight = nextHeight
 				console.log("Contract " + json.contractName + " call successfully")
@@ -90,7 +93,12 @@ async function catchUp(error, event) {
 
 				if (nextBlock != null) {
 					nextBlockHex = encodeBlock(nextBlock)
-					response = await ethClient.methods.addBlockHeader(nextBlockHex).send(options);
+					try {
+						response = await ethClient.methods.addBlockHeader(nextBlockHex).send(options);
+					} catch(e) {
+					    console.log('Error caught');
+					    return
+					}
 				}
 				return
 			}
